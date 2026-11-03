@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}{{ study_set.title }} · Flashcards · NoteSpark{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ study_set.title }}</h1>
+    <p class="page-subtitle">Flashcards · {{ cards|length }} cards</p>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <a href="{{ url_for('export_pdf', set_id=study_set.id) }}" class="btn" title="Download PDF of this study set">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 4v12M7 11l5 5 5-5M4 20h16"></path>
+      </svg>
+      Export PDF
+    </a>
+    {% if study_set.question_count > 0 %}
+      <a href="{{ url_for('take_quiz', set_id=study_set.id) }}" class="btn btn-primary">Start quiz</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="two-col-sidebar">
+  <!-- Left Main Column: Card Player -->
+  <section style="display:flex;flex-direction:column;gap:16px;">
+    <!-- Progress Indicator -->
+    <div style="display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;color:var(--text-muted);">
+      <span id="card-progress-text">Card 1 of {{ cards|length }}</span>
+      <div class="progress-bar-container" style="flex:1;">
+        <div id="card-progress-fill" class="progress-bar-fill" style="width: {{ (1 / (cards|length or 1) * 100)|round }}%;"></div>
+      </div>
+    </div>
+
+    <!-- 3D Flashcard Container -->
+    <div class="flashcard-wrapper">
+      <div id="flashcard-3d" class="flashcard-3d" onclick="flipCard()">
+        <!-- Front of Card (Question) -->
+        <div class="flashcard-face flashcard-front">
+          <span id="card-topic-tag" class="card-type-tag q">Question</span>
+          <div id="card-question-text" class="card-main-text">
+            {% if cards %}{{ cards[0].question }}{% else %}No flashcards available.{% endif %}
+          </div>
+          <button type="button" class="btn" onclick="event.stopPropagation(); flipCard()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"></path>
+            </svg>
+            Flip card
+          </button>
+        </div>
+
+        <!-- Back of Card (Answer) -->
+        <div class="flashcard-face flashcard-back">
+          <span class="card-type-tag a">Answer</span>
+          <div id="card-answer-text" class="card-main-text">
+            {% if cards %}{{ cards[0].answer }}{% else %}Add cards to study.{% endif %}
+          </div>
+          <button type="button" class="btn" onclick="event.stopPropagation(); flipCard()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"></path>
+            </svg>
+            Flip to question
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Row -->
+    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-icon-sq" onclick="prevCard()" aria-label="Previous card">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M15 6l-6 6 6 6"></path>
+        </svg>
+      </button>
+
+      <button type="button" class="btn btn-review" onclick="markCardStatus('review_again')">
+        Review again
+      </button>
+
+      <button type="button" class="btn btn-success" onclick="markCardStatus('got_it')">
+        Got it
+      </button>
+
+      <button type="button" class="btn btn-icon-sq" onclick="nextCard()" aria-label="Next card">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M9 6l6 6-6 6"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-top:4px;">
+      Keyboard shortcuts: <b>Space</b> to flip, <b>← / →</b> to navigate, <b>1</b> for Review, <b>2</b> for Got it
+    </div>
+  </section>
+
+  <!-- Right Sidebar Column: Summary & Topics -->
+  <aside style="display:flex;flex-direction:column;gap:16px;">
+    <!-- Notes Summary Card -->
+    <section class="card-box">
+      <h2 style="margin:0 0 8px;font-size:18px;font-weight:700;">Notes summary</h2>
+      <p style="margin:0;color:var(--text-muted);font-size:15px;line-height:1.55;">
+        {{ study_set.summary or "No summary generated for this study set." }}
+      </p>
+    </section>
+
+    <!-- Topics Filter -->
+    <section class="card-box">
+      <h2 style="margin:0 0 12px;font-size:18px;font-weight:700;">Topics</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="pill-badge topic-pill active" onclick="filterByTopic('All', this)">All</span>
+        {% for t in topics %}
+          <span class="pill-badge topic-pill" onclick="filterByTopic('{{ t }}', this)">{{ t }}</span>
+        {% endfor %}
+      </div>
+    </section>
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/flashcards.js') }}"></script>
+<script>
+  const cardsData = {{ cards|tojson }};
+  const studySetId = {{ study_set.id }};
+  document.addEventListener('DOMContentLoaded', () => {
+    initFlashcards(cardsData, studySetId);
+  });
+</script>
+{% endblock %}

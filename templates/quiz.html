@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}{{ study_set.title }} · Quiz · NoteSpark{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ study_set.title }} Quiz</h1>
+    <p id="quiz-question-counter" class="page-subtitle">Question 1 of {{ questions|length }}</p>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    {% if study_set.card_count > 0 %}
+      <a href="{{ url_for('view_flashcards', set_id=study_set.id) }}" class="btn">View flashcards</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="two-col-sidebar">
+  <!-- Left Main Column: Active Question -->
+  <section class="card-box" style="display:flex;flex-direction:column;gap:20px;">
+    <!-- Badges Row -->
+    <div style="display:flex;gap:8px;">
+      <span id="quiz-diff-badge" class="pill-badge active">
+        {{ questions[0].difficulty if questions else 'Medium' }}
+      </span>
+      <span id="quiz-topic-badge" class="pill-badge">
+        {{ questions[0].topic if questions else 'General' }}
+      </span>
+    </div>
+
+    <!-- Quiz Progress Bar -->
+    <div class="progress-bar-container">
+      <div id="quiz-progress-fill" class="progress-bar-fill" style="width: {{ (1 / (questions|length or 1) * 100)|round }}%;"></div>
+    </div>
+
+    <!-- Question Title -->
+    <h2 id="quiz-question-title" style="margin:0;font-size:24px;line-height:1.35;font-weight:700;">
+      {% if questions %}{{ questions[0].question }}{% else %}No questions available for this quiz.{% endif %}
+    </h2>
+
+    <!-- Answer Options Container -->
+    <fieldset style="border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;">
+      <legend style="position:absolute;left:-9999px;">Answer options</legend>
+      <div id="quiz-options-container" style="display:flex;flex-direction:column;gap:12px;">
+        <!-- Injected dynamically via quiz.js -->
+      </div>
+    </fieldset>
+
+    <!-- Explanation Box (Appears during review mode) -->
+    <div id="quiz-explanation-box" style="display:none;"></div>
+
+    <!-- Navigation Buttons -->
+    <div style="display:flex;justify-content:space-between;gap:12px;margin-top:4px;">
+      <button type="button" id="quiz-prev-btn" class="btn" onclick="prevQuestion()" disabled>
+        Previous
+      </button>
+      <button type="button" id="quiz-next-btn" class="btn btn-primary" onclick="nextQuestion()">
+        Next question
+      </button>
+    </div>
+  </section>
+
+  <!-- Right Sidebar Column: Navigator & Submit -->
+  <aside style="display:flex;flex-direction:column;gap:16px;">
+    <!-- Question Navigator Grid -->
+    <section class="card-box">
+      <h2 style="margin:0 0 12px;font-size:18px;font-weight:700;">Questions</h2>
+      <div id="quiz-nav-grid" class="quiz-nav-grid">
+        <!-- Injected via quiz.js -->
+      </div>
+    </section>
+
+    <!-- Finish & Submit Card -->
+    <section class="card-box">
+      <h2 style="margin:0 0 12px;font-size:18px;font-weight:700;">When you finish</h2>
+      <p style="margin:0 0 16px;color:var(--text-muted);font-size:15px;line-height:1.5;">
+        Your score is calculated automatically and saved to Performance.
+      </p>
+      <button type="button" id="quiz-submit-sidebar-btn" class="btn btn-primary btn-full" onclick="submitQuiz()">
+        Submit quiz
+      </button>
+    </section>
+  </aside>
+</div>
+
+<!-- Score Result Modal -->
+<div id="quiz-result-modal" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal-card" style="text-align:center;">
+    <div id="result-badge-title" style="font-size:22px;font-weight:800;color:var(--primary);margin-bottom:8px;">
+      Quiz Completed! 🎉
+    </div>
+    <div id="result-score-val" style="font-size:56px;font-weight:800;color:var(--text);margin:8px 0;">
+      0%
+    </div>
+    <p id="result-score-desc" style="color:var(--text-muted);font-size:16px;margin:0 0 24px;">
+      You answered 0 out of 0 questions correctly.
+    </p>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <a href="{{ url_for('performance') }}" class="btn btn-primary btn-full" style="text-decoration:none;background:var(--accent-spark-gradient);border-color:var(--accent-spark-hover);">
+        View in Performance 📈
+      </a>
+      <button type="button" class="btn btn-full" onclick="reviewQuizAnswers()">
+        Review Answers &amp; Explanations
+      </button>
+      <button type="button" class="btn btn-full" onclick="retakeQuiz()">
+        Retake Quiz
+      </button>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-full" style="text-decoration:none;">
+        Back to Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+<script>
+  const questionsData = {{ questions|tojson }};
+  const studySetId = {{ study_set.id }};
+  document.addEventListener('DOMContentLoaded', () => {
+    initQuiz(questionsData, studySetId);
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}New Study Set · NoteSpark{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">New study set</h1>
+    <p class="page-subtitle">Upload a PDF or text file, or paste your notes.</p>
+  </div>
+</div>
+
+<form id="generate-study-set-form" enctype="multipart/form-data">
+  <div class="two-col-gen">
+    <!-- Left Column: Upload or Paste -->
+    <section class="card-box" style="display:flex;flex-direction:column;gap:20px;">
+      <!-- Drag & Drop Zone -->
+      <div id="file-drop-zone" class="drop-zone">
+        <div class="drop-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 16V4M7 9l5-5 5 5M4 20h16"></path>
+          </svg>
+        </div>
+        <div class="drop-title">Drag a PDF or TXT file here</div>
+        <div class="drop-subtitle">Text is extracted automatically</div>
+        <button type="button" class="btn">Choose file</button>
+        <input type="file" id="file-upload-input" name="file" accept=".pdf,.txt" style="display:none;">
+        <div id="file-chosen-container"></div>
+      </div>
+
+      <div style="text-align:center;color:var(--text-muted);font-size:14px;font-weight:600;">or</div>
+
+      <!-- Notes Textarea -->
+      <div>
+        <label for="notes" class="form-label">Paste your notes</label>
+        <textarea id="notes" name="notes" rows="8" class="form-control" placeholder="Paste lecture notes, a textbook chapter or a summary here"></textarea>
+      </div>
+    </section>
+
+    <!-- Right Column: Generation Controls -->
+    <section class="card-box" style="display:flex;flex-direction:column;gap:20px;">
+      <h2 style="margin:0;font-size:20px;font-weight:700;">Generate</h2>
+
+      <!-- What to Create -->
+      <fieldset style="border:0;margin:0;padding:0;">
+        <legend class="form-label" style="margin-bottom:4px;">Create</legend>
+        <label class="checkbox-row">
+          <input type="checkbox" id="o1" name="create_flashcards" value="1" checked>
+          <span>Flashcards</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="o2" name="create_quiz" value="1" checked>
+          <span>Multiple-choice quiz</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="o3" name="create_summary" value="1" checked>
+          <span>Notes summary</span>
+        </label>
+      </fieldset>
+
+      <!-- Difficulty -->
+      <fieldset style="border:0;margin:0;padding:0;">
+        <legend class="form-label" style="margin-bottom:8px;">Difficulty</legend>
+        <div style="display:flex;gap:8px;font-size:15px;font-weight:500;">
+          <label class="radio-row" style="flex:1;">
+            <input type="radio" name="difficulty" value="Easy">
+            <span>Easy</span>
+          </label>
+          <label class="radio-row" style="flex:1;">
+            <input type="radio" name="difficulty" value="Medium" checked>
+            <span>Medium</span>
+          </label>
+          <label class="radio-row" style="flex:1;">
+            <input type="radio" name="difficulty" value="Hard">
+            <span>Hard</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- Topic Focus -->
+      <div class="form-group" style="margin:0;">
+        <label for="topic" class="form-label">Topic focus (optional)</label>
+        <input id="topic" name="topic_focus" type="text" class="form-control" placeholder="e.g. Round Robin scheduling">
+      </div>
+
+      <!-- Question Count -->
+      <div class="form-group" style="margin:0;">
+        <label for="num" class="form-label">Number of questions</label>
+        <select id="num" name="question_count" class="form-control" style="cursor:pointer;">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+
+      <!-- AI Model Selection -->
+      <div class="form-group" style="margin:0;">
+        <label for="ai-model" class="form-label">
+          AI Model
+          <span style="font-weight:400;font-size:12px;color:var(--text-muted);">(powered by Groq)</span>
+        </label>
+        <select id="ai-model" name="model_name" class="form-control" style="cursor:pointer;">
+          <option value="openai/gpt-oss-120b" selected>OpenAI GPT-OSS 120B (Deep Reasoning &amp; Complex MCQs)</option>
+          <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (High Technical Precision)</option>
+          <option value="openai/gpt-oss-20b">OpenAI GPT-OSS 20B (High Speed)</option>
+        </select>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" id="generate-btn" class="btn btn-primary btn-full">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M13 2L4 14h7l-1 8 9-12h-7z"></path>
+        </svg>
+        Generate study set
+      </button>
+
+      <p style="margin:0;color:var(--text-muted);font-size:13px;text-align:center;">
+        Your files stay private to your account.
+      </p>
+    </section>
+  </div>
+</form>
+{% endblock %}

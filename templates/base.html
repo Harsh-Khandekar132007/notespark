@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NoteSpark · Smart Notes-to-Flashcards & Quiz Generator{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="shell">
+    <!-- Sidebar Navigation -->
+    <nav class="side" aria-label="Main Navigation">
+      <a href="{{ url_for('dashboard') }}" class="brand">
+        <span class="brand-icon">
+          <svg class="brand-spark-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2L4 14h7l-1 8 9-12h-7z"></path>
+          </svg>
+        </span>
+        <span class="brand-text">Note<span class="spark-gradient-text">Spark</span></span>
+      </a>
+
+      <a href="{{ url_for('dashboard') }}" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11l9-8 9 8M5 10v10h14V10"></path>
+        </svg>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="{{ url_for('new_study_set') }}" class="nav-link {% if active_page == 'new_set' %}active{% endif %}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12h14"></path>
+        </svg>
+        <span>New study set</span>
+      </a>
+
+      <a href="{{ url_for('library') }}" class="nav-link {% if active_page == 'library' %}active{% endif %}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h6v16H4zM14 4h6v16h-6z"></path>
+        </svg>
+        <span>Library</span>
+      </a>
+
+      <a href="{{ url_for('performance') }}" class="nav-link {% if active_page == 'performance' %}active{% endif %}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path>
+        </svg>
+        <span>Performance</span>
+      </a>
+
+      <!-- Clean minimal bottom footer replacing the API setting button -->
+      <div class="side-footer-clean">
+        <div class="brand-tagline-badge">
+          <span class="spark-dot-pulse"></span>
+          <span>AI Study Companion</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Settings Modal (Groq API Key & Model Selection) -->
+  <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="modal-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 id="settings-modal-title" style="margin:0;font-size:20px;font-weight:700;">AI Engine Settings</h3>
+        <button type="button" onclick="closeSettingsModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#55607A;">&times;</button>
+      </div>
+      <p style="margin:0 0 16px;color:#55607A;font-size:14px;line-height:1.5;">
+        Configure your <b>Groq API Key</b> and preferred model for exam-grade revision materials. Powered by high-speed Groq LPU inference.
+      </p>
+
+      <form onsubmit="saveGroqApiKey(event)">
+        <div class="form-group">
+          <label class="form-label" for="groq-api-key-input">Groq API Key</label>
+          <input type="password" id="groq-api-key-input" class="form-control" placeholder="gsk_..." autocomplete="off">
+          <div id="api-key-status" style="font-size:12px;margin-top:6px;"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="groq-model-input">Preferred Model</label>
+          <select id="groq-model-input" class="form-control" style="cursor:pointer;">
+            <option value="openai/gpt-oss-120b" selected>OpenAI GPT-OSS 120B (Flagship - Deep Reasoning &amp; Complex MCQs)</option>
+            <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (High Technical Precision)</option>
+            <option value="openai/gpt-oss-20b">OpenAI GPT-OSS 20B (High Speed)</option>
+          </select>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+          <button type="button" class="btn" onclick="closeSettingsModal()">Cancel</button>
+          <button type="submit" id="save-key-btn" class="btn btn-primary">Save Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Global Toast Notifications Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

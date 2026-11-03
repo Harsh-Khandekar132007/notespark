@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Performance Tracking · NoteSpark{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Performance Tracking</h1>
+    <p class="page-subtitle">Real-time analytics and revision recommendations based on your actual test results.</p>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <a href="{{ url_for('library') }}" class="btn btn-primary">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 5v14M5 12h14"></path>
+      </svg>
+      Take a Quiz
+    </a>
+  </div>
+</div>
+
+{% if total_quizzes > 0 and latest_breakdown %}
+  <!-- Stats Counter Grid (Real Data) -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--primary);">{{ avg_score }}%</div>
+      <div class="stat-label">Average score across tests</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ total_quizzes }}</div>
+      <div class="stat-label">Real quizzes completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#059669;">{{ highest_score }}%</div>
+      <div class="stat-label">Highest score achieved</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--accent-spark-hover);">{{ latest_breakdown.score_percentage }}%</div>
+      <div class="stat-label">Latest test score</div>
+    </div>
+  </div>
+
+  <!-- Hero Spotlight: Last Given Test Breakdown -->
+  <section class="card-box perf-latest-spotlight" style="border: 1.5px solid #C7D2FE; position:relative; overflow:hidden;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="pill-badge spark" style="font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+          <span class="spark-dot-pulse"></span>
+          LATEST TEST GIVEN
+        </span>
+        <h2 style="margin:0;font-size:22px;font-weight:800;color:var(--text);">{{ latest_breakdown.set_title }}</h2>
+      </div>
+      <div style="color:var(--text-muted);font-size:14px;font-weight:500;">
+        Completed on {{ latest_breakdown.completed_at[:16] }}
+      </div>
+    </div>
+
+    <div class="two-col" style="align-items:stretch;">
+      <!-- Left: Score Card & Topic Breakdown -->
+      <div style="display:flex;flex-direction:column;gap:18px;background:#F8FAFE;padding:22px;border-radius:var(--radius-md);border:1px solid #E2E8F0;">
+        <div style="display:flex;align-items:center;gap:20px;">
+          <div style="width:96px;height:96px;border-radius:20px;background:{% if latest_breakdown.score_percentage >= 80 %}#ECFDF5{% elif latest_breakdown.score_percentage >= 60 %}#FEF3C7{% else %}#FEF2F2{% endif %};border:2px solid {% if latest_breakdown.score_percentage >= 80 %}#10B981{% elif latest_breakdown.score_percentage >= 60 %}#F59E0B{% else %}#EF4444{% endif %};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-size:32px;font-weight:800;color:{% if latest_breakdown.score_percentage >= 80 %}#065F46{% elif latest_breakdown.score_percentage >= 60 %}#92400E{% else %}#991B1B{% endif %};line-height:1;">
+              {{ latest_breakdown.score_percentage }}%
+            </span>
+            <span style="font-size:12px;font-weight:700;color:var(--text-muted);margin-top:2px;">Score</span>
+          </div>
+
+          <div>
+            <div style="font-size:18px;font-weight:800;color:var(--text);">
+              {% if latest_breakdown.score_percentage >= 80 %}
+                Exam-Ready Mastery 🏆
+              {% elif latest_breakdown.score_percentage >= 60 %}
+                Proficient Understanding ✨
+              {% else %}
+                Revision Recommended 📖
+              {% endif %}
+            </div>
+            <p style="margin:4px 0 0;color:var(--text-muted);font-size:14px;">
+              You answered <b>{{ latest_breakdown.correct_count }}</b> out of <b>{{ latest_breakdown.total_questions }}</b> questions correctly in this test.
+            </p>
+          </div>
+        </div>
+
+        <!-- Topic Breakdown for Last Test -->
+        {% if latest_breakdown.topics %}
+          <div style="margin-top:4px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">
+              Topic Accuracy in Last Test
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              {% for top in latest_breakdown.topics %}
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:4px;">
+                    <span>{{ top.topic }}</span>
+                    <span>{{ top.correct }}/{{ top.total }} ({{ top.pct }}%)</span>
+                  </div>
+                  <div class="progress-bar-container" style="height:6px;">
+                    <div class="progress-bar-fill" style="width:{{ top.pct }}%;background:{% if top.pct >= 80 %}#10B981{% elif top.pct >= 60 %}#F59E0B{% else %}#EF4444{% endif %};"></div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Quick Actions for Last Test -->
+        <div style="display:flex;gap:10px;margin-top:auto;padding-top:12px;">
+          <a href="{{ url_for('take_quiz', set_id=latest_breakdown.study_set_id) }}" class="btn btn-primary" style="flex:1;">
+            Retake This Quiz
+          </a>
+          <a href="{{ url_for('view_flashcards', set_id=latest_breakdown.study_set_id) }}" class="btn" style="flex:1;">
+            Study Flashcards
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: AI Recommendations based on Last Test -->
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="background:var(--primary-light);border-radius:var(--radius-md);padding:20px;border:1px solid #D2D5FA;">
+          <div style="font-weight:800;color:var(--primary);margin-bottom:8px;font-size:16px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;">💡</span> AI Revision Recommendations
+          </div>
+
+          {% if latest_breakdown.score_percentage == 100 %}
+            <p style="margin:0;color:var(--text);font-size:14px;line-height:1.6;">
+              <b>Flawless score!</b> You answered every single question correctly in <b>{{ latest_breakdown.set_title }}</b>. Your active recall and conceptual understanding are exam-ready. Revisit this set in a few days to cement long-term memory.
+            </p>
+          {% elif latest_breakdown.incorrect_questions %}
+            <p style="margin:0 0 10px;color:var(--text);font-size:14px;line-height:1.5;">
+              Based on your latest test, focus your revision on these specific questions you missed:
+            </p>
+            <div style="display:flex;flex-direction:column;gap:10px;max-height:260px;overflow-y:auto;padding-right:4px;">
+              {% for miss in latest_breakdown.incorrect_questions %}
+                <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-left:4px solid #EF4444;border-radius:8px;padding:12px;font-size:13px;">
+                  <div style="font-weight:700;color:var(--text);margin-bottom:4px;">
+                    Q{{ miss.index }}: {{ miss.question }}
+                  </div>
+                  <div style="color:#991B1B;margin-bottom:2px;">
+                    ❌ Your answer: <b>{{ miss.chosen }}</b>
+                  </div>
+                  <div style="color:#065F46;margin-bottom:4px;">
+                    ✓ Correct answer: <b>{{ miss.correct }}</b>
+                  </div>
+                  {% if miss.explanation %}
+                    <div style="color:var(--text-muted);font-size:12px;line-height:1.4;margin-top:4px;border-top:1px dashed #E2E8F0;padding-top:4px;">
+                      <b>Explanation:</b> {{ miss.explanation }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p style="margin:0;color:var(--text);font-size:14px;line-height:1.5;">
+              Good performance on <b>{{ latest_breakdown.set_title }}</b>. Review the flashcard definitions for any questions that felt uncertain to improve your speed and confidence.
+            </p>
+          {% endif %}
+        </div>
+
+        <div style="background:#FFFFFF;border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:var(--text);">Want to test a different topic?</div>
+            <div style="font-size:13px;color:var(--text-muted);">Choose from your library or generate new questions.</div>
+          </div>
+          <a href="{{ url_for('new_study_set') }}" class="btn btn-primary" style="height:38px;font-size:14px;">
+            Create New Set
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Real Score Progression Chart -->
+  <section class="card-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <h2 class="card-title" style="margin:0 0 4px;">Score Progression Across Tests</h2>
+        <p style="margin:0;color:var(--text-muted);font-size:14px;">Chronological progression of tests you have actually submitted</p>
+      </div>
+      <div style="display:flex;gap:14px;font-size:13px;font-weight:600;">
+        <span style="display:inline-flex;align-items:center;gap:6px;">
+          <span style="width:10px;height:10px;background:#10B981;border-radius:2px;"></span> &ge; 80% (Mastery)
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;">
+          <span style="width:10px;height:10px;background:#F59E0B;border-radius:2px;"></span> 60-79% (Proficient)
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;">
+          <span style="width:10px;height:10px;background:#EF4444;border-radius:2px;"></span> &lt; 60% (Review)
+        </span>
+      </div>
+    </div>
+
+    {% if chart_attempts %}
+      <div class="perf-chart" role="img" aria-label="Bar chart of real quiz scores">
+        {% for att in chart_attempts %}
+          <div class="chart-bar-col" title="{{ att.title }}: {{ att.pct }}% ({{ att.correct }}/{{ att.total }}) on {{ att.date }}">
+            <span class="chart-bar-val">{{ att.pct }}%</span>
+            <div class="chart-bar-fill" style="height: {{ (att.pct * 1.5)|round }}px; background: {{ att.color }};"></div>
+            <span class="chart-bar-label" style="font-weight:700;">{{ att.label }}</span>
+            <span style="font-size:11px;color:var(--text-muted);max-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ att.title }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Complete Real Quiz Attempt History Table -->
+  <section class="card-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 class="card-title" style="margin:0;">Quiz History ({{ all_attempts|length }} tests)</h2>
+      <span style="font-size:13px;color:var(--text-muted);">Real submissions recorded in your database</span>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:15px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);color:var(--text-muted);text-align:left;">
+            <th style="padding:12px 10px;">Date &amp; Time</th>
+            <th style="padding:12px 10px;">Study Set</th>
+            <th style="padding:12px 10px;">Score</th>
+            <th style="padding:12px 10px;">Accuracy</th>
+            <th style="padding:12px 10px;">Status</th>
+            <th style="padding:12px 10px;text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for att in all_attempts %}
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:14px 10px;color:var(--text-muted);font-size:14px;">{{ att.completed_at[:16] }}</td>
+              <td style="padding:14px 10px;font-weight:700;">{{ att.set_title }}</td>
+              <td style="padding:14px 10px;">
+                {% if att.score_percentage >= 80 %}
+                  <span class="pill-badge" style="background:#ECFDF5;color:#065F46;border-color:#A7F3D0;font-weight:700;">{{ att.score_percentage }}%</span>
+                {% elif att.score_percentage >= 60 %}
+                  <span class="pill-badge" style="background:#FEF3C7;color:#92400E;border-color:#FDE68A;font-weight:700;">{{ att.score_percentage }}%</span>
+                {% else %}
+                  <span class="pill-badge" style="background:#FEF2F2;color:#991B1B;border-color:#FECACA;font-weight:700;">{{ att.score_percentage }}%</span>
+                {% endif %}
+              </td>
+              <td style="padding:14px 10px;color:var(--text-muted);font-weight:600;">{{ att.correct_count }} / {{ att.total_questions }}</td>
+              <td style="padding:14px 10px;">
+                {% if att.score_percentage >= 80 %}
+                  <span style="color:#059669;font-size:13px;font-weight:600;">Mastered</span>
+                {% elif att.score_percentage >= 60 %}
+                  <span style="color:#D97706;font-size:13px;font-weight:600;">Proficient</span>
+                {% else %}
+                  <span style="color:#DC2626;font-size:13px;font-weight:600;">Needs Review</span>
+                {% endif %}
+              </td>
+              <td style="padding:14px 10px;text-align:right;">
+                <div style="display:inline-flex;gap:6px;">
+                  <a href="{{ url_for('take_quiz', set_id=att.study_set_id) }}" class="btn" style="height:34px;font-size:13px;padding:0 12px;">Retake Quiz</a>
+                  <a href="{{ url_for('view_flashcards', set_id=att.study_set_id) }}" class="btn" style="height:34px;font-size:13px;padding:0 12px;">Flashcards</a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+{% else %}
+  <!-- Empty State when no real quizzes have been taken yet -->
+  <section class="card-box" style="text-align:center;padding:56px 24px;border:2px dashed var(--border-dashed);">
+    <div style="width:64px;height:64px;border-radius:20px;background:var(--primary-light);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path>
+      </svg>
+    </div>
+    <h2 style="font-size:24px;font-weight:800;color:var(--text);margin-bottom:8px;">No Quiz Attempts Recorded Yet</h2>
+    <p style="color:var(--text-muted);max-width:540px;margin:0 auto 28px;font-size:15px;line-height:1.6;">
+      Take your first quiz from any study set below. As soon as you submit your answers, your real accuracy scores, question breakdowns, and tailored AI revision recommendations will be tracked right here!
+    </p>
+
+    {% if available_quiz_sets %}
+      <div style="max-width:700px;margin:0 auto;text-align:left;">
+        <div style="font-weight:700;font-size:15px;color:var(--text);margin-bottom:12px;">Available Quizzes to Take Now:</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          {% for s in available_quiz_sets %}
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#F8FAFD;border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 18px;">
+              <div>
+                <div style="font-weight:700;font-size:16px;color:var(--text);">{{ s.title }}</div>
+                <div style="color:var(--text-muted);font-size:13px;">{{ s.question_count }} questions · {{ s.difficulty }}</div>
+              </div>
+              <a href="{{ url_for('take_quiz', set_id=s.id) }}" class="btn btn-primary" style="height:38px;">
+                Start Quiz
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <a href="{{ url_for('new_study_set') }}" class="btn btn-primary">Create Your First Study Set</a>
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}

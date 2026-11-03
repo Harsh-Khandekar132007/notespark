@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · NoteSpark{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Welcome back</h1>
+    <p class="page-subtitle">Turn your notes into revision material in minutes.</p>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <a href="{{ url_for('new_study_set') }}" class="btn btn-primary">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 5v14M5 12h14"></path>
+      </svg>
+      New study set
+    </a>
+  </div>
+</div>
+
+<!-- Stats Counter Grid -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.total_sets }}</div>
+    <div class="stat-label">Study sets</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.total_quizzes }}</div>
+    <div class="stat-label">Quizzes taken</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.avg_score }}%</div>
+    <div class="stat-label">Average score</div>
+  </div>
+</div>
+
+<!-- Two-Column Grid: Recent Sets and Performance Bar Chart -->
+<div class="two-col">
+  <!-- Recent Study Sets -->
+  <section class="card-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h2 class="card-title" style="margin:0;">Recent study sets</h2>
+      <a href="{{ url_for('library') }}" style="color:var(--primary);font-size:14px;font-weight:600;text-decoration:none;">View all</a>
+    </div>
+
+    {% if recent_sets %}
+      {% for item in recent_sets %}
+        <div class="study-set-row">
+          <div>
+            <div class="set-title">{{ item.title }}</div>
+            <div class="set-meta">{{ item.source_type }} · {{ item.card_count }} cards · {{ item.question_count }} questions</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <a href="{{ url_for('view_flashcards', set_id=item.id) }}" class="btn">Flashcards</a>
+            <a href="{{ url_for('take_quiz', set_id=item.id) }}" class="btn">Quiz</a>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align:center;padding:36px 12px;color:var(--text-muted);">
+        <p style="margin-bottom:14px;">No study sets yet. Upload notes or PDFs to create your first set!</p>
+        <a href="{{ url_for('new_study_set') }}" class="btn btn-primary">Create a study set</a>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Quiz Performance Chart -->
+  <section class="card-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <h2 class="card-title" style="margin:0;">Quiz performance</h2>
+      <a href="{{ url_for('performance') }}" style="color:var(--primary);font-size:14px;font-weight:600;text-decoration:none;">Full Analytics →</a>
+    </div>
+    <p style="margin:0 0 16px;color:var(--text-muted);font-size:14px;">Recent test attempts</p>
+
+    {% if chart_attempts %}
+      <div class="perf-chart" role="img" aria-label="Bar chart of last quiz scores">
+        {% for att in chart_attempts %}
+          <div class="chart-bar-col" title="{{ att.title }}: {{ att.pct }}%">
+            <span class="chart-bar-val">{{ att.pct }}%</span>
+            <div class="chart-bar-fill" style="height: {{ (att.pct * 1.4)|round }}px; background: {{ att.color or 'var(--primary-gradient)' }};"></div>
+            <span class="chart-bar-label">{{ att.label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align:center;padding:36px 12px;color:var(--text-muted);">
+        <p style="margin-bottom:12px;">No quiz attempts recorded yet.</p>
+        <a href="{{ url_for('library') }}" class="btn">Take your first quiz</a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
