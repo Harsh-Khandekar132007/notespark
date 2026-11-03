@@ -48,6 +48,58 @@ http://127.0.0.1:5000
 
 ### 2. Configure Groq API Key (Optional but Recommended)
 You can get a free, high-speed API key from [Groq Console](https://console.groq.com/keys).
+
+---
+
+## 🌐 Free 24/7 Cloud Hosting (Mobile & Laptop Access)
+
+Deploy NoteSpark online for free so you can access it anytime from your **phone, tablet, or laptop** without running any server on your computer.
+
+### Option A: Render.com (Recommended - 100% Free & Automatic HTTPS)
+
+1. **Push your code to GitHub**:
+   - Go to [github.com/new](https://github.com/new) and create a repository named `notespark`.
+   - In your project directory, run:
+     ```bash
+     git remote add origin https://github.com/YOUR_USERNAME/notespark.git
+     git branch -M main
+     git push -u origin main
+     ```
+2. **Deploy on Render**:
+   - Go to [render.com](https://render.com) and sign up / log in with GitHub (Free).
+   - Click **"New +"** &rarr; **"Web Service"**.
+   - Select your `notespark` repository.
+   - Configure:
+     - **Name**: `notespark` (or your preferred name)
+     - **Region**: Closest to you (e.g., Singapore or Frankfurt)
+     - **Branch**: `main`
+     - **Runtime**: `Python 3`
+     - **Build Command**: `pip install -r requirements.txt`
+     - **Start Command**: `gunicorn app:app`
+     - **Instance Type**: `Free`
+   - In **Environment Variables**, add:
+     - `GROQ_API_KEY` = `your_groq_api_key_here`
+     - `SECRET_KEY` = `any_secret_string`
+   - Click **"Create Web Service"**.
+3. **Done!**
+   - Render gives you a free live URL: `https://notespark-xxxx.onrender.com`.
+   - Open this link on your phone, tablet, or laptop anytime!
+
+---
+
+### Option B: PythonAnywhere (Free Python Hosting)
+
+1. Sign up for a free account at [pythonanywhere.com](https://www.pythonanywhere.com/).
+2. Open a **Bash Console** in PythonAnywhere and clone your repo:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/notespark.git
+   cd notespark
+   pip install --user -r requirements.txt
+   ```
+3. Go to the **Web** tab &rarr; **Add a new web app** &rarr; Choose **Flask** / **Python 3.10**.
+4. Set the path to `notespark` and reload.
+5. Access 24/7 at `https://YOUR_USERNAME.pythonanywhere.com`.
+
 - Click the **"API Settings"** button in the sidebar of the web app and paste your key.
 - Alternatively, add it to your `.env` file:
   ```env
